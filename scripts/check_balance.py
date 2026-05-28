@@ -1,11 +1,14 @@
 """
-DeepSeek 余额查询 + QQ 通知工具
-通过 GitHub Action 每日定时执行，查询 DeepSeek API 余额并推送到 QQ。
+DeepSeek 余额查询 + 微信/QQ 通知工具
+通过 GitHub Action 每日定时执行，查询 DeepSeek API 余额并推送通知。
+
+通知优先级：Server 酱（微信）→ Qmsg 酱（QQ 备选）
 
 需要设置以下 GitHub Secrets / 环境变量：
   - DEEPSEEK_API_KEY: DeepSeek API 密钥
-  - QMSG_KEY: Qmsg 酱的 KEY（从 https://qmsg.zendee.cn 获取）
-  - QMSG_QQ: 接收消息的 QQ 号（可选，默认为 Qmsg 酱后台配置的默认号码）
+  - SERVERCHAN_KEY: Server 酱 SendKey（从 https://sct.ftqq.com 获取）【优先】
+  - QMSG_KEY: Qmsg 酱的 KEY（从 https://qmsg.zendee.cn 获取）【备选】
+  - QMSG_QQ: 接收消息的 QQ 号（可选）
 """
 
 import os
@@ -175,11 +178,11 @@ def send_qq_message(message: str) -> dict:
 
 
 # ============================================================
-# 备选通知：Server 酱（如果 Qmsg 失败，可通过 Server 酱发微信）
+# 优先通知：Server 酱 → 微信
 # ============================================================
 
 def send_serverchan_message(title: str, message: str) -> dict:
-    """通过 Server 酱发送消息到微信（备选方案）"""
+    """通过 Server 酱发送消息到微信（优先方案）"""
     sckey = os.environ.get("SERVERCHAN_KEY", "")
     if not sckey:
         return {"error": "未设置 SERVERCHAN_KEY"}
@@ -219,21 +222,31 @@ def main():
     message = format_balance_message(balance_result)
     print(message)
 
-    # 3. 发送 QQ 通知
-    print("\n[3/3] 正在发送 QQ 通知...")
-    qq_result = send_qq_message(message)
+    # 3. 发送通知（Server 酱优先，Qmsg 酱备选）
+    print("\n[3/3] 正在发送通知...")
 
-    if "error" in qq_result:
-        print(f"  ❌ QQ 通知失败: {qq_result['error']}")
+    sent = False
 
-        # 备选：Server 酱
-        sc_result = send_serverchan_message("DeepSeek 余额", message)
-        if "error" in sc_result:
-            print(f"  ❌ 备选通知也失败: {sc_result['error']}")
-        else:
-            print(f"  ℹ️  已通过 Server 酱发送到微信")
+    # 优先：Server 酱 → 微信
+    print("  → 尝试 Server 酱...")
+    sc_result = send_serverchan_message("DeepSeek 余额", message)
+    if "error" not in sc_result:
+        print("  ✅ Server 酱发送成功")
+        sent = True
     else:
-        print(f"  ✅ QQ 通知发送成功")
+        print(f"  ⚠️  Server 酱失败: {sc_result['error']}")
+
+        # 备选：Qmsg 酱 → QQ
+        print("  → 尝试 Qmsg 酱（备选）...")
+        qq_result = send_qq_message(message)
+        if "error" not in qq_result:
+            print("  ✅ Qmsg 酱发送成功")
+            sent = True
+        else:
+            print(f"  ❌ Qmsg 酱也失败: {qq_result['error']}")
+
+    if not sent:
+        print("\n⚠️  所有通知渠道均失败")
 
     # 最终状态
     if "error" in balance_result:

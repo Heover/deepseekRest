@@ -1,15 +1,15 @@
-# DeepSeek 余额监控 + QQ 通知
+# DeepSeek 余额监控 + 微信/QQ 通知
 
-通过 GitHub Action 每日自动查询 DeepSeek API 余额，并通过 **Qmsg 酱** 推送到 QQ。
+通过 GitHub Action 每日自动查询 DeepSeek API 余额，优先通过 **Server 酱** 推送到微信，Qmsg 酱推送到 QQ 作为备选。
 
 ## 功能
 
-- 🕘 每日 9:00 和 18:00（北京时间）自动查询 DeepSeek 余额
-- 📱 通过 Qmsg 酱推送到 QQ 消息
+- 🕘 每日 00:07（北京时间）自动查询 DeepSeek 余额
+- 📱 优先通过 Server 酱推送到微信
+- 📱 Qmsg 酱推送 QQ 作为备选
 - 📊 显示总余额、充值余额、赠送余额、已使用额度
 - 🔴🟡🟢 根据余额比例自动标记状态
 - 🔄 支持手动触发
-- 📬 备选方案：Server 酱推送到微信
 
 ## 快速开始
 
@@ -18,9 +18,9 @@
 | 凭证 | 说明 | 获取方式 |
 |------|------|----------|
 | `DEEPSEEK_API_KEY` | DeepSeek API 密钥 | [DeepSeek 开放平台](https://platform.deepseek.com/) → API Keys |
-| `QMSG_KEY` | Qmsg 酱推送 KEY | [Qmsg 酱](https://qmsg.zendee.cn/) 注册 → 控制台 → Key |
+| `SERVERCHAN_KEY` | Server 酱 SendKey **（优先）** | [Server 酱](https://sct.ftqq.com/) 注册获取 |
+| `QMSG_KEY` | Qmsg 酱推送 KEY **（备选）** | [Qmsg 酱](https://qmsg.zendee.cn/) 注册 → 控制台 → Key |
 | `QMSG_QQ`（可选） | 接收消息的 QQ 号 | 不填则使用 Qmsg 酱后台配置的默认号码 |
-| `SERVERCHAN_KEY`（可选） | Server 酱 KEY | [Server 酱](https://sct.ftqq.com/) 注册获取，作为备选通知 |
 
 ### 2. 配置 GitHub Secrets
 
@@ -28,9 +28,9 @@
 
 ```
 DEEPSEEK_API_KEY    = sk-xxxxxxxxxxxxxxxx
-QMSG_KEY            = xxxxxxxxxxxxxxxx
+SERVERCHAN_KEY      = SCTxxxxxxxxxxxxx（优先）
+QMSG_KEY            = xxxxxxxxxxxxxxxx（备选）
 QMSG_QQ             = 123456789（可选）
-SERVERCHAN_KEY      = SCTxxxxxxxxxxxxx（可选）
 ```
 
 ### 3. 推送代码到 GitHub
