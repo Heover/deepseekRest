@@ -1,0 +1,38 @@
+name: DeepSeek 余额每日查询
+
+on:
+  schedule:
+    # 每天北京时间 9:00 (UTC+8) => UTC 1:00
+    - cron: "0 1 * * *"
+    # 每天北京时间 18:00 再报一次
+    - cron: "0 10 * * *"
+  workflow_dispatch:  # 允许手动触发
+  push:
+    paths:
+      - "scripts/check_balance.py"
+      - ".github/workflows/daily_balance.yml"
+
+jobs:
+  check-balance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 查询余额并通知
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          QMSG_KEY: ${{ secrets.QMSG_KEY }}
+          QMSG_QQ: ${{ secrets.QMSG_QQ }}
+          SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
+        run: python scripts/check_balance.py
