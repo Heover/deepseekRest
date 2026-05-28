@@ -26,7 +26,7 @@ QMSG_QQ = os.environ.get("QMSG_QQ", "")  # 可选，指定接收 QQ 号
 DEEPSEEK_BALANCE_URL = "https://api.deepseek.com/user/balance"
 
 # Qmsg 酱 API 端点
-QMSG_SEND_URL = "https://qmsg.zendee.cn/api/v2/send"
+QMSG_SEND_URL = "https://qmsg.zendee.cn/send"
 
 # 北京时区
 TZ_BEIJING = timezone(timedelta(hours=8))
