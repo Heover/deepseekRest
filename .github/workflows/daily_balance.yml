@@ -32,5 +32,6 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           QMSG_KEY: ${{ secrets.QMSG_KEY }}
           QMSG_QQ: ${{ secrets.QMSG_QQ }}
+          SERVER_UID: ${{ secrets.SERVER_UID }}
           SERVER_KEY: ${{ secrets.SERVER_KEY }}
         run: python scripts/check_balance.py

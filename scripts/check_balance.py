@@ -1,12 +1,13 @@
 """
-DeepSeek 余额查询 + 微信/QQ 通知工具
+DeepSeek 余额查询 + 手机/QQ 通知工具
 通过 GitHub Action 每日定时执行，查询 DeepSeek API 余额并推送通知。
 
-通知优先级：Server 酱（微信）→ Qmsg 酱（QQ 备选）
+通知优先级：Server 酱3（手机 App）→ Qmsg 酱（QQ 备选）
 
 需要设置以下 GitHub Secrets / 环境变量：
   - DEEPSEEK_API_KEY: DeepSeek API 密钥
-  - SERVER_KEY: Server 酱 SendKey（从 https://sct.ftqq.com 获取）【优先】
+  - SERVER_UID: Server 酱3 用户 UID（从 https://sc3.ft07.com/sendkey 获取）【优先】
+  - SERVER_KEY: Server 酱3 SendKey（从 https://sc3.ft07.com/sendkey 获取）【优先】
   - QMSG_KEY: Qmsg 酱的 KEY（从 https://qmsg.zendee.cn 获取）【备选】
   - QMSG_QQ: 接收消息的 QQ 号（可选）
 """
@@ -182,16 +183,18 @@ def send_qq_message(message: str) -> dict:
 # ============================================================
 
 def send_serverchan_message(title: str, message: str) -> dict:
-    """通过 Server 酱3 发送消息到微信（优先方案）
-    API: POST https://sctapi.ftqq.com/{SendKey}.send
+    """通过 Server 酱3 发送消息到手机 App（优先方案）
+    API: POST https://{uid}.push.ft07.com/send/{sendkey}.send
+    需要在 SendKey 页面获取 uid 和 sendkey 两个值
     """
-    sckey = os.environ.get("SERVER_KEY", "")
-    if not sckey:
-        return {"error": "未设置 SERVER_KEY"}
+    uid = os.environ.get("SERVER_UID", "")
+    sendkey = os.environ.get("SERVER_KEY", "")
+    if not uid or not sendkey:
+        return {"error": "未设置 SERVER_UID 或 SERVER_KEY"}
 
     try:
         resp = requests.post(
-            f"https://sctapi.ftqq.com/{sckey}.send",
+            f"https://{uid}.push.ft07.com/send/{sendkey}.send",
             data={"title": title, "desp": message},
             timeout=15,
         )
@@ -208,6 +211,8 @@ def send_serverchan_message(title: str, message: str) -> dict:
         return {"error": "Server酱3 请求超时"}
     except requests.exceptions.RequestException as e:
         return {"error": f"Server酱3 请求失败: {str(e)}"}
+    except json.JSONDecodeError:
+        return {"error": "Server酱3 返回数据解析失败"}
     except json.JSONDecodeError:
         return {"error": "Server酱3 返回数据解析失败"}
 
