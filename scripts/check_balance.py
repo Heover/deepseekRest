@@ -107,9 +107,7 @@ def format_balance_message(result: dict) -> str:
     data = result.get("data", {})
 
     lines = [
-        f"💰 DeepSeek 余额日报",
         f"📅 {now}",
-        f"{'─' * 20}",
     ]
 
     balance_infos = data.get("balance_infos", [])
@@ -125,10 +123,7 @@ def format_balance_message(result: dict) -> str:
         granted = float(info.get("granted_balance", 0))
         used = topped_up + granted - total  # 推算已使用额度
 
-        lines.append(f"币种: {currency}")
-        lines.append(f"总余额: {total:.4f}")
-        lines.append(f"  充值余额: {topped_up:.4f}")
-        lines.append(f"  赠送余额: {granted:.4f}")
+        lines.append(f"\n余额: {total:.4f}")
 
         if topped_up > 0:
             remaining_percent = (total / topped_up * 100) if topped_up > 0 else 0
