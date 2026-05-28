@@ -182,7 +182,9 @@ def send_qq_message(message: str) -> dict:
 # ============================================================
 
 def send_serverchan_message(title: str, message: str) -> dict:
-    """通过 Server 酱发送消息到微信（优先方案）"""
+    """通过 Server 酱3 发送消息到微信（优先方案）
+    API: POST https://sctapi.ftqq.com/{SendKey}.send
+    """
     sckey = os.environ.get("SERVER_KEY", "")
     if not sckey:
         return {"error": "未设置 SERVER_KEY"}
@@ -194,9 +196,20 @@ def send_serverchan_message(title: str, message: str) -> dict:
             timeout=15,
         )
         resp.raise_for_status()
-        return {"success": True, "data": resp.json()}
-    except Exception as e:
-        return {"error": str(e)}
+        result = resp.json()
+
+        # Server酱3 返回 {"code": 0, "message": "", "data": {...}}
+        if result.get("code") == 0:
+            return {"success": True, "data": result}
+        else:
+            return {"error": result.get("message", "Server酱3 返回失败")}
+
+    except requests.exceptions.Timeout:
+        return {"error": "Server酱3 请求超时"}
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Server酱3 请求失败: {str(e)}"}
+    except json.JSONDecodeError:
+        return {"error": "Server酱3 返回数据解析失败"}
 
 
 # ============================================================
