@@ -124,13 +124,7 @@ def format_balance_message(result: dict) -> str:
         used = topped_up + granted - total  # 推算已使用额度
 
         lines.append(f"\n余额: {total:.4f}")
-
-        if topped_up > 0:
-            remaining_percent = (total / topped_up * 100) if topped_up > 0 else 0
-            emoji = status_emoji(remaining_percent)
-            lines.append(f"  已使用: {used:.4f}")
-            lines.append(f"  剩余比例: {emoji} {remaining_percent:.1f}%")
-
+        
     is_available = data.get("is_available", True)
     if not is_available:
         lines.append("\n🚫 账户余额不足，API 不可用！")
