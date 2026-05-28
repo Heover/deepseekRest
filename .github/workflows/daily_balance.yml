@@ -2,10 +2,8 @@ name: DeepSeek 余额每日查询
 
 on:
   schedule:
-    # 每天北京时间 9:00 (UTC+8) => UTC 1:00
-    - cron: "0 1 * * *"
-    # 每天北京时间 18:00 再报一次
-    - cron: "0 10 * * *"
+    # 每天北京时间 00:07 (UTC+8) => UTC 16:07
+    - cron: "7 16 * * *"
   workflow_dispatch:  # 允许手动触发
   push:
     paths:
