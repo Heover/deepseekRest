@@ -18,7 +18,7 @@
 | 凭证 | 说明 | 获取方式 |
 |------|------|----------|
 | `DEEPSEEK_API_KEY` | DeepSeek API 密钥 | [DeepSeek 开放平台](https://platform.deepseek.com/) → API Keys |
-| `SERVERCHAN_KEY` | Server 酱 SendKey **（优先）** | [Server 酱](https://sct.ftqq.com/) 注册获取 |
+| `SERVER_KEY` | Server 酱 SendKey **（优先）** | [Server 酱](https://sct.ftqq.com/) 注册获取 |
 | `QMSG_KEY` | Qmsg 酱推送 KEY **（备选）** | [Qmsg 酱](https://qmsg.zendee.cn/) 注册 → 控制台 → Key |
 | `QMSG_QQ`（可选） | 接收消息的 QQ 号 | 不填则使用 Qmsg 酱后台配置的默认号码 |
 
@@ -28,7 +28,7 @@
 
 ```
 DEEPSEEK_API_KEY    = sk-xxxxxxxxxxxxxxxx
-SERVERCHAN_KEY      = SCTxxxxxxxxxxxxx（优先）
+SERVER_KEY          = SCTxxxxxxxxxxxxx（优先）
 QMSG_KEY            = xxxxxxxxxxxxxxxx（备选）
 QMSG_QQ             = 123456789（可选）
 ```

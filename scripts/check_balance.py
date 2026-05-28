@@ -6,7 +6,7 @@ DeepSeek 余额查询 + 微信/QQ 通知工具
 
 需要设置以下 GitHub Secrets / 环境变量：
   - DEEPSEEK_API_KEY: DeepSeek API 密钥
-  - SERVERCHAN_KEY: Server 酱 SendKey（从 https://sct.ftqq.com 获取）【优先】
+  - SERVER_KEY: Server 酱 SendKey（从 https://sct.ftqq.com 获取）【优先】
   - QMSG_KEY: Qmsg 酱的 KEY（从 https://qmsg.zendee.cn 获取）【备选】
   - QMSG_QQ: 接收消息的 QQ 号（可选）
 """
@@ -183,9 +183,9 @@ def send_qq_message(message: str) -> dict:
 
 def send_serverchan_message(title: str, message: str) -> dict:
     """通过 Server 酱发送消息到微信（优先方案）"""
-    sckey = os.environ.get("SERVERCHAN_KEY", "")
+    sckey = os.environ.get("SERVER_KEY", "")
     if not sckey:
-        return {"error": "未设置 SERVERCHAN_KEY"}
+        return {"error": "未设置 SERVER_KEY"}
 
     try:
         resp = requests.post(
