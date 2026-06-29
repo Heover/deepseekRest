@@ -112,16 +112,16 @@ function formatBalanceMessage(result, lastBalance) {
   const info = balanceInfos[0];
   const total = parseFloat(info.total_balance || 0);
 
-  let line = `总余额: ${total.toFixed(4)}`;
+  let line = `总余额: ${total.toFixed(2)}`;
 
   if (lastBalance !== null) {
     const delta = total - lastBalance;
     if (Math.abs(delta) < 0.0001) {
       line += " (不变)";
     } else if (delta > 0) {
-      line += ` (+${delta.toFixed(4)})`;
+      line += ` (+${delta.toFixed(2)})`;
     } else {
-      line += ` (${delta.toFixed(4)})`;
+      line += ` (${delta.toFixed(2)})`;
     }
   }
 
@@ -183,7 +183,7 @@ async function main() {
       await client.connect();
       lastBalance = await loadLastBalance(client);
       if (lastBalance !== null) {
-        console.log(`\n📋 上次余额: ${lastBalance.toFixed(4)}`);
+        console.log(`\n📋 上次余额: ${lastBalance.toFixed(2)}`);
       } else {
         console.log("\n📋 首次运行，无历史记录");
       }
