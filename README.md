@@ -1,13 +1,12 @@
 # DeepSeek 余额监控 + 手机通知
 
-通过 GitHub Action 每日自动查询 DeepSeek API 余额，通过 **Server 酱3** 推送到手机 App。**零依赖 Node.js** 实现。
+通过 GitHub Action 每日自动查询 DeepSeek API 余额，通过 **Server 酱3** 推送到手机 App。使用 MongoDB 记录状态，每次对比余额变化。
 
 ## 功能
 
 - 🕘 每日 00:07（北京时间）自动查询 DeepSeek 余额
 - 📱 通过 Server 酱3 推送到手机 App
-- 📊 显示总余额、充值余额、赠送余额、已使用额度
-- 🔴🟡🟢 根据余额比例自动标记状态
+- 📊 显示总余额，与上次对比变化（+增加/-减少/不变）
 - 🔄 支持手动触发
 - 🔧 日志中包含 DeepSeek API 原始返回，便于排查
 - 💓 内置保活机制，防止 60 天无活动被禁用
@@ -21,6 +20,7 @@
 | `DEEPSEEK_API_KEY` | DeepSeek API 密钥 | [DeepSeek 开放平台](https://platform.deepseek.com/) → API Keys |
 | `SERVER_UID` | Server 酱3 用户 UID | [Server 酱3](https://sc3.ft07.com/sendkey) 登录后在 SendKey 页面获取 |
 | `SERVER_KEY` | Server 酱3 SendKey | [Server 酱3](https://sc3.ft07.com/sendkey) 登录后在 SendKey 页面获取 |
+| `MONGODB_URI` | MongoDB 连接字符串（记录余额状态） | MongoDB Atlas 或自建实例 |
 
 ### 2. 配置 GitHub Secrets
 
@@ -30,6 +30,7 @@
 DEEPSEEK_API_KEY    = sk-xxxxxxxxxxxxxxxx
 SERVER_UID          = 你的uid
 SERVER_KEY          = 你的sendkey
+MONGODB_URI         = mongodb+srv://...
 ```
 
 ### 3. 推送代码到 GitHub

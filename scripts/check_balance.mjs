@@ -1,12 +1,16 @@
 /**
- * DeepSeek 余额查询 + 手机通知工具（Node.js 零依赖版）
+ * DeepSeek 余额查询 + 手机通知工具
  * 通过 GitHub Action 每日定时执行，查询 DeepSeek API 余额并通过 Server 酱3 推送通知。
+ * 使用 MongoDB 记录上次余额，对比变化情况。
  *
  * 需要设置以下 GitHub Secrets / 环境变量：
  *   - DEEPSEEK_API_KEY: DeepSeek API 密钥
  *   - SERVER_UID: Server 酱3 用户 UID
  *   - SERVER_KEY: Server 酱3 SendKey
+ *   - MONGODB_URI: MongoDB 连接字符串
  */
+
+import { MongoClient } from "mongodb";
 
 // ============================================================
 // 配置
@@ -15,6 +19,7 @@
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
 const SERVER_UID = process.env.SERVER_UID || "";
 const SERVER_KEY = process.env.SERVER_KEY || "";
+const MONGODB_URI = process.env.MONGODB_URI || "";
 
 const DEEPSEEK_BALANCE_URL = "https://api.deepseek.com/user/balance";
 
@@ -24,13 +29,6 @@ const DEEPSEEK_BALANCE_URL = "https://api.deepseek.com/user/balance";
 
 function nowBeijing() {
   return new Date().toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" });
-}
-
-function statusEmoji(percent) {
-  if (percent > 50) return "🟢";
-  if (percent > 20) return "🟡";
-  if (percent > 5) return "🟠";
-  return "🔴";
 }
 
 // ============================================================
@@ -69,45 +67,69 @@ async function fetchDeepSeekBalance() {
 }
 
 // ============================================================
+// MongoDB 状态读写
+// ============================================================
+
+async function loadLastBalance(client) {
+  try {
+    const coll = client.db("deepseek").collection("balance");
+    const doc = await coll.findOne({ _id: "latest" });
+    return doc ? doc.total : null;
+  } catch {
+    return null;
+  }
+}
+
+async function saveBalance(client, total) {
+  try {
+    const coll = client.db("deepseek").collection("balance");
+    await coll.updateOne(
+      { _id: "latest" },
+      { $set: { total, updatedAt: new Date() } },
+      { upsert: true }
+    );
+  } catch (e) {
+    console.log(`[WARN] 保存余额状态失败: ${e.message}`);
+  }
+}
+
+// ============================================================
 // 格式化消息
 // ============================================================
 
-function formatBalanceMessage(result) {
-  const now = nowBeijing();
-
+function formatBalanceMessage(result, lastBalance) {
   if (result.error) {
-    return `⚠️ DeepSeek 余额查询失败\n时间: ${now}\n原因: ${result.error}`;
+    return `⚠️ DeepSeek 余额查询失败\n原因: ${result.error}`;
   }
 
   const data = result.data || {};
   const balanceInfos = data.balance_infos || [];
 
-  const lines = [`📅 ${now}`, `\nAPI 原始返回:\n${result.raw || JSON.stringify(data)}`];
-
   if (!balanceInfos.length) {
-    lines.push("⚠️ 未获取到余额信息");
-    return lines.join("\n");
+    return "⚠️ 未获取到余额信息";
   }
 
-  for (const info of balanceInfos) {
-    const currency = info.currency || "未知";
-    const total = parseFloat(info.total_balance || 0);
-    const toppedUp = parseFloat(info.topped_up_balance || 0);
-    const granted = parseFloat(info.granted_balance || 0);
-    const used = toppedUp + granted - total;
+  const info = balanceInfos[0];
+  const total = parseFloat(info.total_balance || 0);
 
-    lines.push(`\n💰 ${currency}`);
-    lines.push(`总余额: ${total.toFixed(4)}`);
-    lines.push(`充值余额: ${toppedUp.toFixed(4)}`);
-    lines.push(`赠送余额: ${granted.toFixed(4)}`);
-    lines.push(`已使用: ${used.toFixed(4)}`);
+  let line = `总余额: ${total.toFixed(4)}`;
+
+  if (lastBalance !== null) {
+    const delta = total - lastBalance;
+    if (Math.abs(delta) < 0.0001) {
+      line += " (不变)";
+    } else if (delta > 0) {
+      line += ` (+${delta.toFixed(4)})`;
+    } else {
+      line += ` (${delta.toFixed(4)})`;
+    }
   }
 
   if (data.is_available === false) {
-    lines.push("\n🚫 账户余额不足，API 不可用！");
+    line += "\n🚫 账户余额不足，API 不可用！";
   }
 
-  return lines.join("\n");
+  return line;
 }
 
 // ============================================================
@@ -152,6 +174,24 @@ async function main() {
   console.log("DeepSeek 余额查询工具 (Node.js)");
   console.log("=".repeat(50));
 
+  // 0. 连接 MongoDB
+  let client = null;
+  let lastBalance = null;
+  if (MONGODB_URI) {
+    try {
+      client = new MongoClient(MONGODB_URI);
+      await client.connect();
+      lastBalance = await loadLastBalance(client);
+      if (lastBalance !== null) {
+        console.log(`\n📋 上次余额: ${lastBalance.toFixed(4)}`);
+      } else {
+        console.log("\n📋 首次运行，无历史记录");
+      }
+    } catch (e) {
+      console.log(`⚠️ MongoDB 连接失败: ${e.message}，跳过状态对比`);
+    }
+  }
+
   // 1. 查询余额
   console.log("\n[1/3] 正在查询 DeepSeek 余额...");
   const balanceResult = await fetchDeepSeekBalance();
@@ -162,12 +202,21 @@ async function main() {
     console.log("  ✅ 查询成功");
   }
 
-  // 2. 格式化消息
+  // 2. 格式化消息（含对比）
   console.log("\n[2/3] 正在格式化消息...");
-  const message = formatBalanceMessage(balanceResult);
+  const message = formatBalanceMessage(balanceResult, lastBalance);
   console.log(message);
 
-  // 3. 发送通知
+  // 3. 保存本次余额
+  if (!balanceResult.error && client) {
+    const data = balanceResult.data || {};
+    const infos = data.balance_infos || [];
+    if (infos.length) {
+      await saveBalance(client, parseFloat(infos[0].total_balance || 0));
+    }
+  }
+
+  // 4. 发送通知
   console.log("\n[3/3] 正在发送通知...");
   console.log("  → Server 酱...");
   const scResult = await sendServerChanMessage("DeepSeek 余额", message);
@@ -176,6 +225,9 @@ async function main() {
   } else {
     console.log(`  ❌ Server 酱失败: ${scResult.error}`);
   }
+
+  // 断开 MongoDB
+  if (client) await client.close();
 
   // 最终状态
   if (balanceResult.error) {
