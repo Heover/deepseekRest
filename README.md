@@ -39,7 +39,7 @@ MONGODB_URI         = mongodb+srv://...
 git init
 git add .
 git commit -m "feat: DeepSeek 余额监控 (Node.js)"
-git remote add origin git@github.com:Heover/deepseekRest.git
+git remote add origin git@github.com:Heover/deepseek-balance.git
 git push -u origin main
 ```
 
