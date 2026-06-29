@@ -1,0 +1,22 @@
+name: 保活
+
+on:
+  schedule:
+    # 每月 1 号 00:00 UTC 触发一次，防止 60 天无活动被禁用
+    - cron: "0 0 1 * *"
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - name: 保活提交
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          date > .keepalive
+          git add .keepalive
+          git diff --cached --quiet || git commit -m "chore: keep alive $(date +%Y-%m-%d)"
+          git push origin HEAD:main || true

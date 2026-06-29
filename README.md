@@ -1,15 +1,16 @@
-# DeepSeek 余额监控 + 手机/QQ 通知
+# DeepSeek 余额监控 + 手机通知
 
-通过 GitHub Action 每日自动查询 DeepSeek API 余额，优先通过 **Server 酱3** 推送到手机 App，Qmsg 酱推送到 QQ 作为备选。
+通过 GitHub Action 每日自动查询 DeepSeek API 余额，通过 **Server 酱3** 推送到手机 App。**零依赖 Node.js** 实现。
 
 ## 功能
 
 - 🕘 每日 00:07（北京时间）自动查询 DeepSeek 余额
-- 📱 优先通过 Server 酱3 推送到手机 App
-- 📱 Qmsg 酱推送 QQ 作为备选
+- 📱 通过 Server 酱3 推送到手机 App
 - 📊 显示总余额、充值余额、赠送余额、已使用额度
 - 🔴🟡🟢 根据余额比例自动标记状态
 - 🔄 支持手动触发
+- 🔧 日志中包含 DeepSeek API 原始返回，便于排查
+- 💓 内置保活机制，防止 60 天无活动被禁用
 
 ## 快速开始
 
@@ -18,10 +19,8 @@
 | 凭证 | 说明 | 获取方式 |
 |------|------|----------|
 | `DEEPSEEK_API_KEY` | DeepSeek API 密钥 | [DeepSeek 开放平台](https://platform.deepseek.com/) → API Keys |
-| `SERVER_UID` | Server 酱3 用户 UID **（优先）** | [Server 酱3](https://sc3.ft07.com/sendkey) 登录后在 SendKey 页面获取 |
-| `SERVER_KEY` | Server 酱3 SendKey **（优先）** | [Server 酱3](https://sc3.ft07.com/sendkey) 登录后在 SendKey 页面获取 |
-| `QMSG_KEY` | Qmsg 酱推送 KEY **（备选）** | [Qmsg 酱](https://qmsg.zendee.cn/) 注册 → 控制台 → Key |
-| `QMSG_QQ`（可选） | 接收消息的 QQ 号 | 不填则使用 Qmsg 酱后台配置的默认号码 |
+| `SERVER_UID` | Server 酱3 用户 UID | [Server 酱3](https://sc3.ft07.com/sendkey) 登录后在 SendKey 页面获取 |
+| `SERVER_KEY` | Server 酱3 SendKey | [Server 酱3](https://sc3.ft07.com/sendkey) 登录后在 SendKey 页面获取 |
 
 ### 2. 配置 GitHub Secrets
 
@@ -29,10 +28,8 @@
 
 ```
 DEEPSEEK_API_KEY    = sk-xxxxxxxxxxxxxxxx
-SERVER_UID          = 你的uid（优先）
-SERVER_KEY          = 你的sendkey（优先）
-QMSG_KEY            = xxxxxxxxxxxxxxxx（备选）
-QMSG_QQ             = 123456789（可选）
+SERVER_UID          = 你的uid
+SERVER_KEY          = 你的sendkey
 ```
 
 ### 3. 推送代码到 GitHub
@@ -40,14 +37,21 @@ QMSG_QQ             = 123456789（可选）
 ```bash
 git init
 git add .
-git commit -m "feat: DeepSeek 余额监控"
-git remote add origin git@github.com:你的用户名/仓库名.git
+git commit -m "feat: DeepSeek 余额监控 (Node.js)"
+git remote add origin git@github.com:Heover/deepseekRest.git
 git push -u origin main
 ```
 
 ### 4. 手动测试
 
 在 GitHub 仓库的 **Actions** 标签页 → 选择 `DeepSeek 余额每日查询` → **Run workflow** 手动触发。
+
+## 技术栈
+
+- **Node.js 20**（零依赖，仅用内置 `fetch`）
+- GitHub Actions cron 定时触发
+- Server 酱3 / Qmsg 酱 消息推送
+- 保活工作流（每月自动提交，防止 Actions 被禁用）
 
 ## 消息示例
 
