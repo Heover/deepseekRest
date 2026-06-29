@@ -73,7 +73,7 @@ async function fetchDeepSeekBalance() {
 async function loadLastBalance(client) {
   try {
     const coll = client.db("github").collection("parameter");
-    const doc = await coll.findOne({ _id: "latest" });
+    const doc = await coll.findOne({ _id: "deepseek_balance" });
     return doc ? doc.total : null;
   } catch {
     return null;
@@ -84,7 +84,7 @@ async function saveBalance(client, total) {
   try {
     const coll = client.db("github").collection("parameter");
     await coll.updateOne(
-      { _id: "latest" },
+      { _id: "deepseek_balance" },
       { $set: { total, updatedAt: new Date() } },
       { upsert: true }
     );
